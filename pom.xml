@@ -49,6 +49,12 @@
             <version>6.5.2.Final</version>
             <type>pom</type>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>RELEASE</version>
+            <scope>provided</scope>
+        </dependency>
 
     </dependencies>
 

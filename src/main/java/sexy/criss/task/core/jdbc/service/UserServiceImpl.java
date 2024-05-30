@@ -1,14 +1,16 @@
 package sexy.criss.task.core.jdbc.service;
 
+import sexy.criss.task.core.jdbc.dao.UserDao;
 import sexy.criss.task.core.jdbc.dao.UserDaoJDBCImpl;
 import sexy.criss.task.core.jdbc.model.User;
 import sexy.criss.task.core.jdbc.util.Util;
 
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class UserServiceImpl implements UserService {
-    private final UserDaoJDBCImpl daoJDBC;
+    private final UserDao daoJDBC;
     private final Logger logger;
 
     public UserServiceImpl() {
@@ -37,7 +39,10 @@ public class UserServiceImpl implements UserService {
     }
 
     public List<User> getAllUsers() {
-        return daoJDBC.getAllUsers();
+        return daoJDBC.getAllUsers().stream().filter(user -> {
+            System.out.println(user.toString());
+            return true;
+        }).collect(Collectors.toList());
     }
 
     public void cleanUsersTable() {

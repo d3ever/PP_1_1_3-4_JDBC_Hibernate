@@ -1,7 +1,11 @@
 package sexy.criss.task.core.jdbc.util;
 
+import lombok.Getter;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Configuration;
@@ -16,7 +20,37 @@ import java.util.Properties;
 
 public class Util {
     private static Connection connection;
+    @Getter
     private static SessionFactory sessionFactory;
+
+    static {
+        Configuration configuration = new Configuration();
+        Properties properties = new Properties();
+
+        properties.put(AvailableSettings.DRIVER, "com.mysql.cj.jdbc.Driver");
+        properties.put(AvailableSettings.URL, "jdbc:mysql://localhost:3306/dataBase");
+        properties.put(AvailableSettings.CURRENT_SESSION_CONTEXT_CLASS, "thread");
+        properties.put(AvailableSettings.USER, "root");
+        properties.put(AvailableSettings.PASS, "password");
+
+        configuration.setProperties(properties);
+        configuration.addAnnotatedClass(User.class);
+
+        final StandardServiceRegistry registry = new StandardServiceRegistryBuilder().applySettings(configuration.getProperties()).build();
+        try {
+            sessionFactory = new MetadataSources(registry).buildMetadata().buildSessionFactory();
+        } catch (Exception ex) {
+            StandardServiceRegistryBuilder.destroy(registry);
+        }
+    }
+
+    public static void commit(Session session, Action action) {
+        try (session) {
+            session.beginTransaction();
+            action.handle();
+            session.getTransaction().commit();
+        }
+    }
 
     public static Connection getConnection() {
         if(connection != null) return connection;
@@ -26,22 +60,6 @@ public class Util {
             throw new RuntimeException(e);
         }
         return connection;
-    }
-
-    public static SessionFactory getSessionFactory() {
-        if(sessionFactory != null) return sessionFactory;
-        Configuration configuration = new Configuration();
-        Properties properties = new Properties();
-
-        properties.put(AvailableSettings.DRIVER, "com.mysql.cj.jdbc.Driver");
-        properties.put(AvailableSettings.URL, "jdbc:mysql://localhost:3306/dataBase");
-        properties.put(AvailableSettings.USER, "root");
-        properties.put(AvailableSettings.PASS, "password");
-
-        configuration.setProperties(properties);
-        configuration.addAnnotatedClass(User.class);
-
-        return sessionFactory = configuration.buildSessionFactory(new StandardServiceRegistryBuilder().applySettings(configuration.getProperties()).build());
     }
 
     public static boolean execute(String sql, Object... args) {
